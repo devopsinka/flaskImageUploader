@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Загрузка картинки</title>
+</head>
+<body>
+    <h1>Загрузка картинки</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/*">
+        <input type="submit" value="Загрузить">
+    </form>
+    
+    {% if file_url %}
+    <h2>Ссылка на изображение:</h2>
+        <a href="{{ file_url }}" target="_blank">{{ file_url }}</a>
+    {% endif %}
+
+</body>
+</html>

@@ -1,4 +1,5 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory
+from transliterate import translit
 import os
 
 app = Flask(__name__)
@@ -13,9 +14,23 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/')
+def transliterate_filename(filename):
+    base, ext = os.path.splitext(filename)
+    transliterated_base = translit(base, 'ru', reversed=True)
+    transliterated_filename = transliterated_base.lower().replace(' ', '_') + ext
+    return transliterated_filename
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    # Отображаем форму загрузки файла
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = file.filename
+            filename = transliterate_filename(filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            file_url = url_for('uploaded_file', filename=filename, _external=True)
+            return render_template('index.html', file_url=file_url)
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
@@ -30,6 +45,7 @@ def upload():
     if file and allowed_file(file.filename):
         # Сохраняем файл в папку uploads
         filename = file.filename
+        filename = transliterate_filename(filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         
         # Создаем ссылку на загруженный файл

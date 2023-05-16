@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Загрузка картинки</title>
+    <title>Загрузка изображений</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Загрузка картинки</h1>
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="file" accept="image/*">
-        <input type="submit" value="Загрузить">
-    </form>
-    
-    {% if file_url %}
-    <h2>Ссылка на изображение:</h2>
-    <p>Скопируйте ссылку ниже и вставьте ее на другой ресурс:</p>
-        <a href="{{ file_url }}" target="_blank">{{ file_url }}</a>
-    {% endif %}
-
+    <div class="container">
+        <h1>Загрузка изображений</h1>
+        {% if error %}
+        <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
+        <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Выберите изображение:</label>
+                <input type="file" name="file" id="file" accept=".png, .jpg, .jpeg, .gif" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
+        {% if file_url %}
+        <hr>
+        <h3>Ссылка на загруженное изображение:</h3>
+        <p><a href="{{ file_url }}" target="_blank">{{ file_url }}</a></p>
+        {% endif %}
+    </div>
 </body>
 </html>

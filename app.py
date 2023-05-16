@@ -1,6 +1,9 @@
-from flask import Flask, request, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory, session
 from transliterate import translit
+from captcha.image import ImageCaptcha
 import os
+import random
+
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -8,6 +11,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # Устанавливаем папку для загрузки файлов
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 def allowed_file(filename):
     # Проверяем разрешенное расширение файла
@@ -19,6 +23,7 @@ def transliterate_filename(filename):
     transliterated_base = translit(base, 'ru', reversed=True)
     transliterated_filename = transliterated_base.lower().replace(' ', '_') + ext
     return transliterated_filename
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -43,6 +48,12 @@ def upload():
     
     # Проверяем, что файл имеет допустимое расширение
     if file and allowed_file(file.filename):
+        # Проверяем правильность Captcha
+        user_captcha = request.form.get('captcha', '').upper()
+        captcha_text = session.get('captcha_text', '')
+        if user_captcha != captcha_text:
+            return render_template('index.html', error='Неверная Captcha', captcha_text=captcha_text)
+        
         # Сохраняем файл в папку uploads
         filename = file.filename
         filename = transliterate_filename(filename)
@@ -54,7 +65,8 @@ def upload():
         # Возвращаем главную страницу с ссылкой на загруженное изображение
         return render_template('index.html', file_url=file_url)
     
-    # Если файл имеет недопустимое расширение, перенаправляем пользователя обратно на форму загрузки
+    # Если файл имеет недопустимое расширение или Captcha неправильная,
+    # перенаправляем пользователя обратно на форму загрузки с сообщением об ошибке
     return redirect(request.url)
 
 @app.route('/uploads/<filename>')

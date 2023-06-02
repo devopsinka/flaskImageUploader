@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory, session
 from transliterate import translit
-from captcha.image import ImageCaptcha
 import os
 import random
 
@@ -43,17 +42,10 @@ def upload():
     # Проверяем, что файл был отправлен в запросе
     if 'file' not in request.files:
         return redirect(request.url)
-    
     file = request.files['file']
     
     # Проверяем, что файл имеет допустимое расширение
     if file and allowed_file(file.filename):
-        # Проверяем правильность Captcha
-        user_captcha = request.form.get('captcha', '').upper()
-        captcha_text = session.get('captcha_text', '')
-        if user_captcha != captcha_text:
-            return render_template('index.html', error='Неверная Captcha', captcha_text=captcha_text)
-        
         # Сохраняем файл в папку uploads
         filename = file.filename
         filename = transliterate_filename(filename)
@@ -65,9 +57,6 @@ def upload():
         # Возвращаем главную страницу с ссылкой на загруженное изображение
         return render_template('index.html', file_url=file_url)
     
-    # Если файл имеет недопустимое расширение или Captcha неправильная,
-    # перенаправляем пользователя обратно на форму загрузки с сообщением об ошибке
-    return redirect(request.url)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
